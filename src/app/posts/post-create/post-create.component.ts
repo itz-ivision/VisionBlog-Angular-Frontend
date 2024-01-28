@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { Post } from '../post.model';
 import { NgForm } from '@angular/forms';
 import { PostService } from '../post.service';
 
@@ -21,14 +20,13 @@ export class PostCreateComponent {
       alert("Please enter valid data to add post.");
       return;
     }
+    // const post: Post = {
+    //   title: form.value.title,
+    //   content: form.value.content
+    // };
+    this.postService.addPost(form.value.title, form.value.content);
 
-    const post: Post = {
-      title: form.value.title,
-      content: form.value.content
-    };
-    this.postService.addPost(post);
-
-    form.reset();
+    form.resetForm();
   }
 
   // getErrorMessage() {

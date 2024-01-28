@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Post } from '../post.model';
 import { PostService } from '../post.service';
 import { Subscription } from 'rxjs';
@@ -25,13 +25,13 @@ export class PostListComponent implements OnInit, OnDestroy{
   //   }
   // ]
 
-  @Input() posts: Post[] = [];
+  posts: Post[] = [];
   private postsSubscription!: Subscription;
 
   constructor(public postService: PostService) {}
 
   ngOnInit() {
-    this.posts = this.postService.getPosts();
+    this.postService.getPosts();
     this.postsSubscription = this.postService.getUpdatedPostsListner()
       .subscribe(
         (posts: Post[]) => {

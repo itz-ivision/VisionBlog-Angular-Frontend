@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Post } from "./post.model";
 import { Subject, of } from "rxjs";
-import { catchError, map } from "rxjs/operators";
+import { catchError, map, tap } from "rxjs/operators";
 import { HttpClient } from "@angular/common/http";
 
 @Injectable({ providedIn: 'root' })
@@ -16,16 +16,23 @@ export class PostService {
     constructor(private http: HttpClient) {}
 
     getPosts() {
-        this.http.get<{message: string, posts: Post[]}>(
+        this.http.get<{message: string, data: Post[]}>(
             "http://localhost:3000/api/v1/posts/"
         ).pipe(
+            tap(
+                responseDataata => {
+                    if (!responseDataata.data || !Array.isArray(responseDataata.data)) {
+                        console.log("No posts ")
+                        throw new Error("Invalid response structure: posts property is missing or not an array.");
+                    }
+                }
+            ), 
             map(
-                (data) => {
-                    // console.log("Response data : ",data);
-                    return data.posts.map(
+                (responseDataata) => {
+                    return responseDataata.data.map(
                         (post) => {
-                            console.log("Post : ", post)
                             return {
+                                _id: post._id,
                                 title: post.title,
                                 content: post.content
                             }
@@ -39,7 +46,7 @@ export class PostService {
             })
         ).subscribe(
             (transformedPosts) => {
-                console.log("Transformed Posts : ",transformedPosts);
+                // console.log("Transformed Posts : ",transformedPosts);
                 this.posts = transformedPosts;
                 this.updaedPostList.next([...this.posts]);
             }
@@ -52,7 +59,7 @@ export class PostService {
     }
 
     addPost(title: string, content: string) {
-        const post: Post = {title, content}
+        const post: Post = {_id : '', title, content}
         this.http.post<{ message: string }>("http://localhost:3000/api/v1/posts/", post)
             .subscribe(
                 (responseData) => {
@@ -64,11 +71,20 @@ export class PostService {
             );
     }
 
+    getPostById(postId: string | null) {
+        return {...this.posts.find((post) => post._id === postId)};
+    }
+
     deletePost(postId: string) {
         this.http.delete(
             "http://localhost:3000/api/v1/posts/"+ postId)
             .subscribe(
-                // TODO: after deleting a post update the list of posts. 
+                () => {
+                    const updatedPost = this.posts.filter(
+                        post => post._id !== postId);
+                    this.posts = updatedPost;
+                    this.updaedPostList.next([...this.posts]);
+                }
             )
     }
 

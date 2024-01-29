@@ -1,1 +1,10 @@
-<mat-toolbar color="primary">VisionBlog</mat-toolbar>
+<mat-toolbar color="primary">
+    <span><a routerLink="/"><b>VisionBlog</b></a></span>
+    <span class="space"></span>
+    <ul>
+        <li>
+            <a mat-button routerLink="/post/create"
+                routerLinkActive="mat-accent"><b>New Post</b></a>
+        </li>
+    </ul>
+</mat-toolbar>

@@ -83,14 +83,14 @@ export class PostService {
             "http://localhost:3000/api/v1/posts/"+ id,
             post
         ).subscribe(
-            (response) => {
-                // const updatedPosts = [...this.posts];
-                // const oldPostIndex = updatedPosts.findIndex(
-                //     resPost => resPost._id === post._id);
-                // updatedPosts[oldPostIndex] = post;
-                // this.posts = updatedPosts;
-                // this.updaedPostList.next([...this.posts]);
-            }
+            // (response) => {
+            //     const updatedPosts = [...this.posts];
+            //     const oldPostIndex = updatedPosts.findIndex(
+            //         resPost => resPost._id === post._id);
+            //     updatedPosts[oldPostIndex] = post;
+            //     this.posts = updatedPosts;
+            //     this.updaedPostList.next([...this.posts]);
+            // }
         )
     }
 

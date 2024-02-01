@@ -6,3 +6,15 @@ mat-form-field,
 textarea {
     width: 100%;
 }
+
+mat-spinner {
+    margin: auto;
+}
+
+.filePicker {
+    margin-bottom: 1rem;
+}
+
+input[type="file"] {
+    visibility: hidden;
+}

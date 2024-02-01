@@ -3,6 +3,7 @@ import { Post } from "./post.model";
 import { Subject, of } from "rxjs";
 import { catchError, map, tap } from "rxjs/operators";
 import { HttpClient } from "@angular/common/http";
+import { Router } from "@angular/router";
 
 @Injectable({ providedIn: 'root' })
 export class PostService {
@@ -13,7 +14,7 @@ export class PostService {
 
     BASE_API_URL="http://localhost:3000/api/v1"
 
-    constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient, private router: Router) {}
 
     getPosts() {
         this.http.get<{message: string, data: Post[]}>(
@@ -66,6 +67,7 @@ export class PostService {
                     if (responseData) {
                         this.posts.push(post);
                         this.updaedPostList.next([...this.posts]);
+                        this.router.navigate(["/"]);
                     }
                 }
             );
@@ -83,14 +85,15 @@ export class PostService {
             "http://localhost:3000/api/v1/posts/"+ id,
             post
         ).subscribe(
-            // (response) => {
-            //     const updatedPosts = [...this.posts];
-            //     const oldPostIndex = updatedPosts.findIndex(
-            //         resPost => resPost._id === post._id);
-            //     updatedPosts[oldPostIndex] = post;
-            //     this.posts = updatedPosts;
-            //     this.updaedPostList.next([...this.posts]);
-            // }
+            (response) => {
+                const updatedPosts = [...this.posts];
+                const oldPostIndex = updatedPosts.findIndex(
+                    resPost => resPost._id === post._id);
+                updatedPosts[oldPostIndex] = post;
+                this.posts = updatedPosts;
+                this.updaedPostList.next([...this.posts]);
+                this.router.navigate(["/"]);
+            }
         )
     }
 

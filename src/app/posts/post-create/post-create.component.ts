@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { FormControl, FormGroup, NgForm, Validators } from '@angular/forms';
 import { PostService } from '../post.service';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { Post } from '../post.model';
@@ -14,6 +14,8 @@ export class PostCreateComponent implements OnInit{
   title= "";
   content = "";
   post!: Post;
+  isLoading = false;
+  postForm!: FormGroup;
   private mode = 'create';
   private postId!: string | null;
 
@@ -21,14 +23,34 @@ export class PostCreateComponent implements OnInit{
     public route: ActivatedRoute) {}
 
     ngOnInit() {
+      this.postForm = new FormGroup({
+        'title': new FormControl(null, { validators: [Validators.required, Validators.minLength(7)] }),
+        'image': new FormControl(null, { validators: [ Validators.required ]}),
+        'content': new FormControl(null, { validators: [Validators.required] })
+      });
+    
       this.route.paramMap.subscribe((paramMap: ParamMap) => {
         this.postId = paramMap.get('postId');
         if (paramMap.has('postId') && this.postId) {
           this.mode = 'edit';
+          this.isLoading = true;
           this.postService.getPostById(this.postId).subscribe(
-            (data) => {
-              console.log(data.valueOf());
-              // this.post = {_id: postData._id, title: postData.title, content: postData.content}; 
+            (postData: any) => {
+              this.isLoading = false;
+              this.post = {
+                _id: postData.data._id,
+                title: postData.data.title,
+                content: postData.data.content
+              };
+    
+              this.postForm.setValue({
+                'title': this.post.title,
+                'content': this.post.content
+              });
+            },
+            (error) => {
+              // Handle error, if needed
+              this.isLoading = false;
             }
           );
         } else {
@@ -37,14 +59,26 @@ export class PostCreateComponent implements OnInit{
         }
       });
     }
+    
+    onFileChange(fileEvent: Event) {
+      const file = (fileEvent.target as HTMLInputElement)?.files?.[0];
 
-    onAddPost(form: NgForm) {
-      if (form.invalid) {
+      if (file) {
+        this.postForm.patchValue({ image: file});
+        this.postForm.get('image')?.updateValueAndValidity();
+        console.log(file);
+        console.log(this.postForm);        
+      }
+
+    }
+
+    onAddPost() {
+      if (this.postForm.invalid) {
         alert('Please enter valid data to add post.');
         return;
       }
-  
-      const { title: postTitle, content: postContent } = form.value;
+      this.isLoading = true;
+      const { title: postTitle, content: postContent } = this.postForm.value;
   
       if (postTitle && postContent) {
         if (this.mode === 'create') {
@@ -54,7 +88,7 @@ export class PostCreateComponent implements OnInit{
         }
       }
   
-      form.resetForm();
+      this.postForm.reset();
     }
 
   // getErrorMessage() {

@@ -3,6 +3,7 @@ import { FormControl, FormGroup, NgForm, Validators } from '@angular/forms';
 import { PostService } from '../post.service';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { Post } from '../post.model';
+import {mimeTypeValidator} from './mime-type.validator';
 
 @Component({
   selector: 'app-post-create',
@@ -16,6 +17,7 @@ export class PostCreateComponent implements OnInit{
   post!: Post;
   isLoading = false;
   postForm!: FormGroup;
+  imagePreviewUrl!: string;
   private mode = 'create';
   private postId!: string | null;
 
@@ -25,7 +27,7 @@ export class PostCreateComponent implements OnInit{
     ngOnInit() {
       this.postForm = new FormGroup({
         'title': new FormControl(null, { validators: [Validators.required, Validators.minLength(7)] }),
-        'image': new FormControl(null, { validators: [ Validators.required ]}),
+        'image': new FormControl(null, { validators: [ Validators.required ], asyncValidators: [mimeTypeValidator]}),
         'content': new FormControl(null, { validators: [Validators.required] })
       });
     
@@ -61,15 +63,37 @@ export class PostCreateComponent implements OnInit{
     }
     
     onFileChange(fileEvent: Event) {
-      const file = (fileEvent.target as HTMLInputElement)?.files?.[0];
 
-      if (file) {
-        this.postForm.patchValue({ image: file});
+      const inputElement = fileEvent.target as HTMLInputElement;
+      const files = inputElement.files;
+      
+      if (files && files.length > 0) {
+        const file = files[0];
+        this.postForm.patchValue({ image: file });
         this.postForm.get('image')?.updateValueAndValidity();
-        console.log(file);
-        console.log(this.postForm);        
+        this.readAndDisplayImage(file);
+
+      } else {
+        console.log("No file selected");
       }
 
+    }
+
+    private readAndDisplayImage(file: File) {
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        if (event.target) {
+          const result = event.target.result;
+          if (typeof result === 'string') {
+            this.imagePreviewUrl = result;
+          } else {
+            console.error(" Unexpected result type : ", result)
+          }
+        }
+      };
+
+      reader.readAsDataURL(file);
     }
 
     onAddPost() {

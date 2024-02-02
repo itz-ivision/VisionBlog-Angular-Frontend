@@ -14,8 +14,11 @@
                 (click)="imagePicker.click()"
                 (change)="onFileChange($event)">
                     Add Image
-                </button>
+            </button>
             <input type="file" #imagePicker>
+        </div>
+        <div class="image-preview" *ngIf="imagePreviewUrl !== '' && imagePreviewUrl && postForm.get('image')?.valid">
+            <img [src]="imagePreviewUrl" [alt]="postForm.value.title">
         </div>
         <mat-form-field>
             <mat-label><b>Post Content</b></mat-label>

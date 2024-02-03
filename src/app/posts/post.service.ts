@@ -30,12 +30,14 @@ export class PostService {
             ), 
             map(
                 (responseDataata) => {
+                    console.log(responseDataata);
                     return responseDataata.data.map(
                         (post) => {
                             return {
                                 _id: post._id,
                                 title: post.title,
-                                content: post.content
+                                content: post.content,
+                                imagePath: post.imagePath
                             }
                         }
                     )
@@ -59,11 +61,27 @@ export class PostService {
         return this.updaedPostList.asObservable();
     }
 
-    addPost(title: string, content: string) {
-        const post: Post = {_id : '', title, content}
-        this.http.post<{ message: string }>("http://localhost:3000/api/v1/posts/", post)
+    addPost(title: string, content: string, image: File) {
+
+        const postData = new FormData();
+        postData.append('title', title);
+        postData.append('content', content);
+        // postData.append('image', image, image.name);
+        if (image && image.name) {
+            postData.append('image', image, image.name);
+        }
+
+        this.http.post<{ message: string; post: Post }>(
+            "http://localhost:3000/api/v1/posts/", 
+            postData)
             .subscribe(
                 (responseData) => {
+                    const post: Post = {
+                        _id : responseData.post._id, 
+                        title: title,
+                        content: content,
+                        imagePath: responseData.post.imagePath
+                    }
                     if (responseData) {
                         this.posts.push(post);
                         this.updaedPostList.next([...this.posts]);

@@ -42,7 +42,8 @@ export class PostCreateComponent implements OnInit{
               this.post = {
                 _id: postData.data._id,
                 title: postData.data.title,
-                content: postData.data.content
+                content: postData.data.content,
+                imagePath: postData.data.imagePath
               };
     
               this.postForm.setValue({
@@ -97,16 +98,16 @@ export class PostCreateComponent implements OnInit{
     }
 
     onAddPost() {
-      if (this.postForm.invalid) {
-        alert('Please enter valid data to add post.');
-        return;
-      }
+      // if (this.postForm.invalid) {
+      //   alert('Please enter valid data to add post.');
+      //   return;
+      // }
       this.isLoading = true;
-      const { title: postTitle, content: postContent } = this.postForm.value;
+      const { title: postTitle, content: postContent, image: postImage } = this.postForm.value;
   
       if (postTitle && postContent) {
         if (this.mode === 'create') {
-          this.postService.addPost(postTitle, postContent);
+          this.postService.addPost(postTitle, postContent, postImage);
         } else if (this.mode === 'edit' && this.postId) {
           this.postService.updatePostById(this.postId, postTitle, postContent);
         }

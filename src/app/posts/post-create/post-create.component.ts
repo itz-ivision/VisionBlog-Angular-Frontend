@@ -48,12 +48,14 @@ export class PostCreateComponent implements OnInit{
     
               this.postForm.setValue({
                 'title': this.post.title,
-                'content': this.post.content
+                'content': this.post.content,
+                'image': this.post.imagePath
               });
             },
             (error) => {
               // Handle error, if needed
               this.isLoading = false;
+              console.log(error);
             }
           );
         } else {
@@ -98,10 +100,10 @@ export class PostCreateComponent implements OnInit{
     }
 
     onAddPost() {
-      // if (this.postForm.invalid) {
-      //   alert('Please enter valid data to add post.');
-      //   return;
-      // }
+      if (this.postForm.invalid) {
+        alert('Please enter valid data to add post.');
+        return;
+      }
       this.isLoading = true;
       const { title: postTitle, content: postContent, image: postImage } = this.postForm.value;
   

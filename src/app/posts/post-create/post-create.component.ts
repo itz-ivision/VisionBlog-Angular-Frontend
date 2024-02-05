@@ -111,7 +111,11 @@ export class PostCreateComponent implements OnInit{
         if (this.mode === 'create') {
           this.postService.addPost(postTitle, postContent, postImage);
         } else if (this.mode === 'edit' && this.postId) {
-          this.postService.updatePostById(this.postId, postTitle, postContent);
+          this.postService.updatePostById(
+            this.postId, 
+            postTitle, 
+            postContent,
+            postImage);
         }
       }
   

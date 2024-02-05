@@ -16,9 +16,11 @@ export class PostService {
 
     constructor(private http: HttpClient, private router: Router) {}
 
-    getPosts() {
+    getPosts(postPerPage: number, currentPage: number) {
+
+        const queryParams = `?pagesize=${postPerPage}&page=${currentPage}`;
         this.http.get<{message: string, data: Post[]}>(
-            "http://localhost:3000/api/v1/posts/"
+            "http://localhost:3000/api/v1/posts/" + queryParams
         ).pipe(
             tap(
                 responseDataata => {
@@ -54,7 +56,6 @@ export class PostService {
                 this.updaedPostList.next([...this.posts]);
             }
         )
-        // TODO: Debug listing all posts
     }
 
     getUpdatedPostsListner() {
@@ -91,22 +92,46 @@ export class PostService {
             );
     }
 
-    getPostById(id: string | null) {
-        return this.http.get(
+    getPostById(id: string) {
+        return this.http.get<{ id: string, title: string, content: string, imagePath: string}>(
             "http://localhost:3000/api/v1/posts/"+ id,
         );
     }
 
-    updatePostById(id: string, title: string, content: string) {
-        const post: Post = { _id: id, title: title, content: content};
+    updatePostById(id: string, title: string, content: string, image: File | string) {
+
+        let postData: Post | FormData;
+        if (typeof(image) === 'object') {
+            postData = new FormData();
+            postData.append('_id', id);
+            postData.append('title', title);
+            postData.append('content', content);
+            postData.append('image', image, image.name);
+
+        } else {
+            postData = {
+                _id: id,
+                title: title,
+                content: content,
+                imagePath: image
+            }
+        }
+
         this.http.put(
             "http://localhost:3000/api/v1/posts/"+ id,
-            post
+            postData
         ).subscribe(
             (response) => {
                 const updatedPosts = [...this.posts];
                 const oldPostIndex = updatedPosts.findIndex(
-                    resPost => resPost._id === post._id);
+                    resPost => resPost._id === id);
+                const post: Post = {
+                    _id: id,
+                    title: title,
+                    content: content,
+                    imagePath: 'response.imagePath'
+            
+                }
                 updatedPosts[oldPostIndex] = post;
                 this.posts = updatedPosts;
                 this.updaedPostList.next([...this.posts]);

@@ -9,7 +9,7 @@ import { Router } from "@angular/router";
 export class PostService {
     
     private posts: Post[] = [];
-    private updaedPostList = new Subject<Post[]>();
+    private updaedPostList = new Subject<{posts: Post[], totalPosts: number}>();
     // responseMessage = '';
 
     BASE_API_URL="http://localhost:3000/api/v1"
@@ -19,21 +19,22 @@ export class PostService {
     getPosts(postPerPage: number, currentPage: number) {
 
         const queryParams = `?pagesize=${postPerPage}&page=${currentPage}`;
-        this.http.get<{message: string, data: Post[]}>(
+        this.http.get<{message: string, postsData: Post[], postsCount: number}>(
             "http://localhost:3000/api/v1/posts/" + queryParams
         ).pipe(
             tap(
                 responseDataata => {
-                    if (!responseDataata.data || !Array.isArray(responseDataata.data)) {
+                    console.log("Raw Response Data:", responseDataata);
+                    if (!responseDataata.postsData || !Array.isArray(responseDataata.postsData)) {
                         console.log("No posts ")
                         throw new Error("Invalid response structure: posts property is missing or not an array.");
                     }
                 }
-            ), 
+            ),
             map(
                 (responseDataata) => {
-                    console.log(responseDataata);
-                    return responseDataata.data.map(
+                    console.log(" Raw Response Data : " ,responseDataata);
+                    return {postsData: responseDataata.postsData.map(
                         (post) => {
                             return {
                                 _id: post._id,
@@ -42,7 +43,7 @@ export class PostService {
                                 imagePath: post.imagePath
                             }
                         }
-                    )
+                    ), postCount: responseDataata.postsCount}
                 }
             ),
             catchError(error => {
@@ -50,10 +51,12 @@ export class PostService {
                 return of([]);
             })
         ).subscribe(
-            (transformedPosts) => {
-                // console.log("Transformed Posts : ",transformedPosts);
-                this.posts = transformedPosts;
-                this.updaedPostList.next([...this.posts]);
+            transformedPostData => {
+                    this.posts = transformedPostData.postsData;
+                    this.updaedPostList.next({
+                        posts: [...this.posts],
+                        totalPosts: transformedPostData.postsCount
+                    });
             }
         )
     }
@@ -84,8 +87,6 @@ export class PostService {
                         imagePath: responseData.post.imagePath
                     }
                     if (responseData) {
-                        this.posts.push(post);
-                        this.updaedPostList.next([...this.posts]);
                         this.router.navigate(["/"]);
                     }
                 }
@@ -122,35 +123,27 @@ export class PostService {
             postData
         ).subscribe(
             (response) => {
-                const updatedPosts = [...this.posts];
-                const oldPostIndex = updatedPosts.findIndex(
-                    resPost => resPost._id === id);
-                const post: Post = {
-                    _id: id,
-                    title: title,
-                    content: content,
-                    imagePath: 'response.imagePath'
+                // const updatedPosts = [...this.posts];
+                // const oldPostIndex = updatedPosts.findIndex(
+                //     resPost => resPost._id === id);
+                // const post: Post = {
+                //     _id: id,
+                //     title: title,
+                //     content: content,
+                //     imagePath: 'response.imagePath'
             
-                }
-                updatedPosts[oldPostIndex] = post;
-                this.posts = updatedPosts;
-                this.updaedPostList.next([...this.posts]);
+                // }
+                // updatedPosts[oldPostIndex] = post;
+                // this.posts = updatedPosts;
+                // this.updaedPostList.next([...this.posts]);
                 this.router.navigate(["/"]);
             }
         )
     }
 
     deletePost(postId: string) {
-        this.http.delete(
+        return this.http.delete(
             "http://localhost:3000/api/v1/posts/"+ postId)
-            .subscribe(
-                () => {
-                    const updatedPost = this.posts.filter(
-                        post => post._id !== postId);
-                    this.posts = updatedPost;
-                    this.updaedPostList.next([...this.posts]);
-                }
-            )
     }
 
 }

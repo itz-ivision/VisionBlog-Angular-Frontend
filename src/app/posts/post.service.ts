@@ -19,13 +19,12 @@ export class PostService {
     getPosts(postPerPage: number, currentPage: number) {
 
         const queryParams = `?pagesize=${postPerPage}&page=${currentPage}`;
-        this.http.get<{message: string, postsData: Post[], postsCount: number}>(
+        this.http.get<{message: string, posts: Post[], postsCount: number}>(
             "http://localhost:3000/api/v1/posts/" + queryParams
         ).pipe(
             tap(
                 responseDataata => {
-                    console.log("Raw Response Data:", responseDataata);
-                    if (!responseDataata.postsData || !Array.isArray(responseDataata.postsData)) {
+                    if (!responseDataata.posts || !Array.isArray(responseDataata.posts)) {
                         console.log("No posts ")
                         throw new Error("Invalid response structure: posts property is missing or not an array.");
                     }
@@ -33,9 +32,12 @@ export class PostService {
             ),
             map(
                 (responseDataata) => {
-                    console.log(" Raw Response Data : " ,responseDataata);
-                    return {postsData: responseDataata.postsData.map(
+                    console.log(" Raw Response DatA : " ,responseDataata);
+                    console.log("Posts : ", responseDataata.posts);
+                    
+                    return {postsData: responseDataata.posts.map(
                         (post) => {
+                            console.log(post);
                             return {
                                 _id: post._id,
                                 title: post.title,
@@ -43,7 +45,8 @@ export class PostService {
                                 imagePath: post.imagePath
                             }
                         }
-                    ), postCount: responseDataata.postsCount}
+                    ), postCount: responseDataata.postsCount
+                }
                 }
             ),
             catchError(error => {
@@ -52,7 +55,9 @@ export class PostService {
             })
         ).subscribe(
             transformedPostData => {
-                    this.posts = transformedPostData.postsData;
+                console.log("Transformed Posts : ", transformedPostData);
+                
+                    this.posts = transformedPostData.posts;
                     this.updaedPostList.next({
                         posts: [...this.posts],
                         totalPosts: transformedPostData.postsCount
